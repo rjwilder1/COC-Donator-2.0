@@ -67,6 +67,7 @@ class Funcs:
         self.CWArcher = "Images\CWArcher.png"
         self.CWIceGolem = "Images\CWIceGolem.png"
         self.CWNight = "Images\CWNight.png"
+        self.CWRequest = "Images\CWRequest.png"
         #SwitchAccount
         self.SK = "Images\SK.png"
         self.LegacyWRLD = "Images\LegacyWRLD.png"
@@ -92,12 +93,24 @@ class Funcs:
                 self.Click(self.WaitUntilImage(self.LegacyWRLD))
                 self.DonateWarCC()
 
-    def DonateWarCC(self, event=None):
-        while not self.CheckImage(self.Trophy): time.sleep(0.5)
-        self.Click(self.WaitUntilImage(self.CWButton))
-        self.Click(self.WaitUntilImage(self.CWMe))
+    def DragL(self):
+        pyautogui.mouseDown(1100, 363)
+        pyautogui.moveTo(425, 363)
+        pyautogui.mouseUp()
 
-        while not self.CheckImage(self.CWBack): time.sleep(0.5)
+    def DragR(self):
+        pyautogui.mouseDown(425, 363)
+        pyautogui.moveTo(1100, 363)
+        pyautogui.mouseUp()
+
+    def DonateWarCC(self, event=None):
+        while not self.CheckImage(self.CWButton): time.sleep(1)
+        self.Click(self.WaitUntilImage(self.CWButton))
+        time.sleep(5)
+        me = self.WaitUntilImage(self.CWMe)
+        self.Click(me)
+
+        while not self.CheckImage(self.CWBack): time.sleep(1)
 
         while not self.CheckRGB(pyautogui.pixel(511, 886), (166, 166, 166)):
             pyautogui.click(511, 886)
@@ -105,32 +118,46 @@ class Funcs:
 
         AlreadyIn = False
         while True:
+            TriedLeft = 0
+            TriedRight = 0
+            if self.CheckImage(self.CWRequest, conf=0.85): 
+                pyautogui.click(1406, 887)
+                time.sleep(1)
+                continue
             if not self.CheckRGB(pyautogui.pixel(639, 849), (148, 148, 148)): 
                 if not AlreadyIn:
                     AlreadyIn = True
                     pyautogui.click(639, 849)
                     self.Click(self.WaitUntilImage(self.CWQuickDonate))
                     self.WaitUntilImage(self.CWGoBack)
-                self.Click(self.CheckImage(self.CWSuperMinion), amt=3)
-                #DRAG
-                time.sleep(1)
-                pyautogui.mouseDown(1100, 363)
-                pyautogui.moveTo(425, 363)
-                pyautogui.mouseUp()
-                time.sleep(2)
-                self.Click(self.CheckImage(self.CWIceGolem), amt=2)
-                    #time.sleep(0.5)
+                self.Click(self.CheckImage(self.CWSuperMinion, gray=True), amt=2)
 
-                self.Click(self.CheckImage(self.CWNight), amt=1)
-                time.sleep(1)
+                while not self.CheckImage(self.CWNight, gray=True):
+                    if TriedLeft >=10: 
+                        self.ResetBlueStacks()
+                        break
+                    TriedLeft += 1
+                    self.DragL()
+                    time.sleep(1.5)
 
-                pyautogui.mouseDown(425, 363)
-                pyautogui.moveTo(1100, 363)
-                pyautogui.mouseUp()
+                self.Click(self.CheckImage(self.CWIceGolem, gray=True), amt=1)
+                time.sleep(0.5)
 
-                time.sleep(2)
-                self.Click(self.CheckImage(self.CWMinion), amt=2)
-                pyautogui.click(739, 244, 2)
+                self.Click(self.CheckImage(self.CWNight, gray=True), amt=1)
+                time.sleep(0.5)
+
+                while not self.CheckImage(self.CWMinion, gray=True):
+                    if TriedRight >=10: 
+                        self.ResetBlueStacks()
+                        break
+                    TriedRight += 1
+                    self.DragR()
+                    time.sleep(1.5)
+
+                self.Click(self.CheckImage(self.CWMinion, gray=True), amt=2)
+                time.sleep(0.5)
+                pyautogui.click(739, 244, 4)
+
             time.sleep(0.5)
             if not self.CheckRGB(pyautogui.pixel(1406, 887), (166, 166, 166)):
                 #self.Click(self.CheckImage(self.CWForward))
@@ -160,10 +187,11 @@ class Funcs:
         thread = threading.Thread(target=self.UpTimeCount)
         thread.daemon = True
         thread.start()
-    
+     
     def UpTimeCount(self):
         while True:
             self.Uptime += 1
+            self.Update()
             time.sleep(1)
 
     def convert_seconds(self, seconds):
@@ -197,19 +225,25 @@ class Funcs:
         AllTitles = pygetwindow.getAllTitles()
         if "Sponsored session" in AllTitles:
             pygetwindow.getWindowsWithTitle("Sponsored session")[0].close()
-            print("Closed TeamViewer and reset")
+            self.print_log("Closed TeamViewer and reset")
             self.ResetBlueStacks()
 
     def WaitUntilImage(self, path, conf=0.7, gray=False):
         Timeout = 0
         while (pyautogui.locateCenterOnScreen(path, grayscale=gray, confidence=conf) is None):
             if Timeout >= self.MaxTimeoutSeconds:
-                print("Max timeout reached. Resetting...")
+                self.print_log("Max timeout reached by: " + path)
                 self.ResetBlueStacks()
                 break
             time.sleep(1)
             Timeout +=1
         return pyautogui.locateCenterOnScreen(path, grayscale=gray, confidence=conf)
+    
+    def print_log(self, txt):
+        SendMsg = self.gettime() + txt + "\n"
+        print(SendMsg)
+        with open("error_log.txt", 'a') as log_file:  # Log to error_log.txt
+            log_file.write(SendMsg)
     
     def CheckImage(self, path, conf=0.7, gray=False):
         img = pyautogui.locateCenterOnScreen(path, grayscale=gray, confidence=conf)
@@ -263,7 +297,10 @@ class Funcs:
         while (not self.CheckWindow()):
            time.sleep(1)
         window = pygetwindow.getWindowsWithTitle("BlueStacks App Player")[0]
-        window.activate()
+        try:
+            window.activate()
+        except Exception as e:
+            self.print_log("Error: " + str(e))
         newwindow = pygetwindow.getActiveWindow()
         newwindow.maximize()
         self.WaitUntilImage(self.ClashIcon)
@@ -308,8 +345,7 @@ class Funcs:
             self.Click(img)
             img = self.WaitUntilImage(self.EnterTroops)
             self.Click(img)
-            self.WaitUntilImage(self.TrainTroopsIMG, conf=0.85)
-            pyautogui.click(500, 100)
+            pyautogui.click(600, 100)
             time.sleep(.6)
             pyautogui.click(960, 650, 5)
             time.sleep(.6)
@@ -354,7 +390,7 @@ class Funcs:
                 time.sleep(0.5)
                 pyautogui.click(970, 670, 2)
                 time.sleep(0.5)
-            self.Donations += 1
+                self.Donations += 1
             img = self.CheckImage(self.X)
             if img:
                 self.Click(img)
@@ -433,8 +469,9 @@ class Funcs:
             while True:
                 count +=1
                 if count >=60:
-                    print("Error with getting chat...")
+                    self.print_log("Error with getting chat...")
                     self.ResetBlueStacks()
+                    break
                 if self.CheckRGB(pyautogui.pixel(1000, 1050), (254, 254, 254)):
                     break
                 time.sleep(0.5)
@@ -458,15 +495,12 @@ class Funcs:
             self.SendChat(msg="Donating is disabled")
 
         elif self.ClearSimilar("Donate War CC") in cmd:
-            self.SendChat(msg="Donating to war Clan Castles, this may take a while")
+            #self.SendChat(msg="Donating to war Clan Castles, this may take a while")
             self.SwitchAccount(who="LegacyWRLD")
 
         elif self.ClearSimilar("Enable") in cmd:
             self.Disabled = False
             self.SendChat(msg="Donating is enabled")
-
-        elif self.ClearSimilar("Donations") in cmd or self.ClearSimilar("Donabions") in cmd:
-            self.SendChat(msg="Donated a total of " + str(self.Donations) + " times")
 
         elif self.ClearSimilar("Status") in cmd or self.ClearSimilar("Sbabus") in cmd or self.ClearSimilar("Stabus") in cmd or self.ClearSimilar("Sbatus") in cmd:
             if self.Disabled: 
@@ -474,15 +508,15 @@ class Funcs:
             else:
                 self.SendChat(msg="Donating is currently enabled")
 
+        elif self.ClearSimilar("Donations") in cmd or self.ClearSimilar("Donabions") in cmd:
+            self.SendChat(msg="Donated a total of " + str(self.Donations) + " times")
+
         elif self.ClearSimilar("Banned") in cmd:
             self.SendChat(msg="User banned: " + (", ".join(self.banned)))
         
         elif self.ClearSimilar("Uptime") in cmd or self.ClearSimilar("Upbime") in cmd:
             days, hours, minutes, seconds = self.convert_seconds(self.Uptime)
             self.SendChat(msg="Total time up: " + f"{str(days)} days, {str(hours)} hours, {str(minutes)} minutes, and {str(seconds)} seconds.")
-
-        elif self.ClearSimilar("Auth") in cmd or self.ClearSimilar("Aubh") in cmd: self.SendChat(msg="Users allowed to use commands: " + (", ".join(self.AuthUsers)))
-        elif self.ClearSimilar("Gems") in cmd: self.SendChat(msg="Total gems left: " + self.Gems())
 
         elif self.ClearSimilar("Pause") in cmd:
             self.SendChat(msg="Pausing for 120 seconds")
@@ -492,21 +526,28 @@ class Funcs:
             self.SendChat(msg="Hard resetting...")
             self.ResetBlueStacks()
 
+        elif self.ClearSimilar("Auth") in cmd or self.ClearSimilar("Aubh") in cmd: self.SendChat(msg="Users allowed to use commands: " + (", ".join(self.AuthUsers)))
+        elif self.ClearSimilar("Gems") in cmd: self.SendChat(msg="Total gems left: " + self.Gems())
+
         return False
 
     def CheckMaximized(self):
         if self.CheckImage(self.Icon, conf=0.6):
-            print("Reset due to maximize error.")
+            self.print_log("Reset due to maximize error.")
             self.ResetBlueStacks()
             return True
         return False
+    
+    def Update(self):
+        with open('data.txt', 'w') as file:
+            file.writelines("Uptime: " + str(self.Uptime) + "\n")
+            file.writelines("Donations: " + str(self.Donations))
     
     def CheckReload(self, event=None):
         img = self.CheckImage(self.Reload)
         if img:
             self.Click(img)
-            time.sleep(1)
-            self.SendChat(msg = "Back from being reloaded")
+            self.print_log("Had me reload, there was possibly an error...")
             return True
         return False
 
@@ -526,8 +567,14 @@ class Funcs:
 
 if __name__ == "__main__":
     self = Funcs()
-    print("Users banned: " + (", ".join(self.banned)))
-    print("Users authorized: " + (", ".join(self.AuthUsers)))
+    with open('data.txt', 'r') as file:
+        for i in file:
+            if "Uptime" in i:
+                self.Uptime = int(i.strip("Uptime: "))
+            elif "Donations" in i:
+                self.Donations = int(i.strip("Donations: "))
+    self.print_log("Users banned: " + (", ".join(self.banned)))
+    self.print_log("Users authorized: " + (", ".join(self.AuthUsers)))
     self.ResetBlueStacks()
     #import keyboard
     #keyboard.on_press_key('/', self.DonateWarCC)
