@@ -76,7 +76,7 @@ class Funcs:
         #Lists
         self.banned = ["Velixity"]
         self.AuthUsers = ["Legacy", "LegacyWRLD", "king", "iNeverTriple", "Strikers6699", "-$Cam$-", "DallasCowboys"]
-        
+        self.Update()
         self.ResetThread()
         self.ResetThread2()
         self.UpTimeFunc()
