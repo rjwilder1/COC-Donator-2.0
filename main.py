@@ -76,10 +76,18 @@ class Funcs:
         #Lists
         self.banned = ["Velixity"]
         self.AuthUsers = ["Legacy", "LegacyWRLD", "king", "iNeverTriple", "Strikers6699", "-$Cam$-", "DallasCowboys"]
-        self.Update()
+        self.LogData()
         self.ResetThread()
         self.ResetThread2()
         self.UpTimeFunc()
+
+    def LogData(self):
+        with open('data.txt', 'r') as file:
+            for i in file:
+                if "Uptime" in i:
+                    self.Uptime = int(i.strip("Uptime: "))
+                elif "Donations" in i:
+                    self.Donations = int(i.strip("Donations: "))
 
     def SwitchAccount(self, who="SK"):
         if self.Resetting: return
@@ -345,6 +353,7 @@ class Funcs:
             self.Click(img)
             img = self.WaitUntilImage(self.EnterTroops)
             self.Click(img)
+            time.sleep(2)
             pyautogui.click(600, 100)
             time.sleep(.6)
             pyautogui.click(960, 650, 5)
@@ -378,11 +387,11 @@ class Funcs:
                 self.Click(img)
                 time.sleep(0.5)
                 pyautogui.click(840, 260, 5)
-                time.sleep(1)
+                time.sleep(0.5)
                 pyautogui.click(840, 440, 5)
-                time.sleep(1)
+                time.sleep(0.5)
                 pyautogui.click(840, 670, 3)
-                time.sleep(1)
+                time.sleep(0.5)
 
                 pyautogui.click(970, 260, 5)
                 time.sleep(0.5)
@@ -495,7 +504,7 @@ class Funcs:
             self.SendChat(msg="Donating is disabled")
 
         elif self.ClearSimilar("Donate War CC") in cmd:
-            #self.SendChat(msg="Donating to war Clan Castles, this may take a while")
+            self.SendChat(msg="Donating to war Clan Castles, this may take a while")
             self.SwitchAccount(who="LegacyWRLD")
 
         elif self.ClearSimilar("Enable") in cmd:
@@ -567,12 +576,6 @@ class Funcs:
 
 if __name__ == "__main__":
     self = Funcs()
-    with open('data.txt', 'r') as file:
-        for i in file:
-            if "Uptime" in i:
-                self.Uptime = int(i.strip("Uptime: "))
-            elif "Donations" in i:
-                self.Donations = int(i.strip("Donations: "))
     self.print_log("Users banned: " + (", ".join(self.banned)))
     self.print_log("Users authorized: " + (", ".join(self.AuthUsers)))
     self.ResetBlueStacks()
