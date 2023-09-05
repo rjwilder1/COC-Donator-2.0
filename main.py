@@ -68,6 +68,8 @@ class Funcs:
         self.CWIceGolem = "Images\CWIceGolem.png"
         self.CWNight = "Images\CWNight.png"
         self.CWRequest = "Images\CWRequest.png"
+        self.CWLButton = "Images\CWLButton.png"
+
         #SwitchAccount
         self.SK = "Images\SK.png"
         self.LegacyWRLD = "Images\LegacyWRLD.png"
@@ -75,7 +77,7 @@ class Funcs:
         self.SwitchSettings = "Images\Settings.png"
         #Lists
         self.banned = ["Velixity"]
-        self.AuthUsers = ["Legacy", "LegacyWRLD", "king", "iNeverTriple", "Strikers6699", "-$Cam$-", "DallasCowboys"]
+        self.AuthUsers = ["Legacy", "LegacyWRLD", "king", "iNeverTriple", "Strikers6699", "Cam", "DallasCowboys", "Michi"]
         self.LogData()
         self.ResetThread()
         self.ResetThread2()
@@ -112,8 +114,10 @@ class Funcs:
         pyautogui.mouseUp()
 
     def DonateWarCC(self, event=None):
-        while not self.CheckImage(self.CWButton): time.sleep(1)
-        self.Click(self.WaitUntilImage(self.CWButton))
+        while not self.CheckImage(self.EnterTroops): time.sleep(1)
+
+
+        pyautogui.click(100, 650, 2)
         time.sleep(5)
         me = self.WaitUntilImage(self.CWMe)
         self.Click(me)
